@@ -208,6 +208,13 @@ jobs:
           if startup_old not in s:
               raise SystemExit("classroom-browser.cjs startup sequence was not found.")
           s = s.replace(startup_old, startup_new, 1)
+
+          visibility_old = " for(const locale of ['en','ko']){await page.selectOption('#study-language',locale);await page.locator('[data-section=read]').click();const first=await page.locator('.course-tr').first().boundingBox();assert(first.y+first.height<740,"
+          visibility_new = " for(const locale of ['en','ko']){await page.selectOption('#study-language',locale);await page.locator('[data-section=read]').click();await page.locator('.course-tr').first().waitFor({state:'visible'});const first=await page.locator('.course-tr').first().boundingBox();assert(first&&first.y+first.height<740,"
+          if visibility_old not in s:
+              raise SystemExit("classroom-browser.cjs visibility timing assertion was not found.")
+          s = s.replace(visibility_old, visibility_new, 1)
+
           p.write_text(s, encoding="utf-8")
 
           print("Migrated catalog/browser/classroom assumptions and PWA-safe browser startup.")
