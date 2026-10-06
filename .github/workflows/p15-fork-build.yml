@@ -156,7 +156,7 @@ jobs:
               ),
               (
                   " assert.equal(catalog.courses.length,6);assert.equal(ordered.length,77);assert.equal(new Set(ordered).size,77);",
-                  " assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),\`unexpected pronunciation lesson count: \${pron.length}\`);"
+                  " assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),`unexpected pronunciation lesson count: ${pron.length}`);"
               ),
               (
                   " assert.deepEqual([...ordered].sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());",
@@ -182,10 +182,10 @@ jobs:
           if old not in s:
               raise SystemExit("browser.cjs legacy lesson-count assertion was not found.")
           s = s.replace(old, new, 1)
-          s = s.replace("console.log(\`All 77 lessons rendered in \${l}.\`);", "console.log(\`All \${ids.length} lessons rendered in \${l}.\`);")
+          s = s.replace("console.log(`All 77 lessons rendered in ${l}.`);", "console.log(`All ${ids.length} lessons rendered in ${l}.`);")
           s = s.replace(
               "console.log('PASS: 77 lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.');",
-              "console.log(\`PASS: \${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.\`);"
+              "console.log(`PASS: ${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.`);"
           )
           p.write_text(s, encoding="utf-8")
           print("Migrated catalog/browser assumptions.")
@@ -254,7 +254,7 @@ jobs:
             echo
             echo "Final automated Chromium checks: **PASS**"
             echo
-            echo "Candidate committed to \`release/p15-beta-final\`."
+            echo "Candidate committed to `release/p15-beta-final`."
             echo
             echo "P13/P14 human evidence remains intentionally pending."
           } >> "$GITHUB_STEP_SUMMARY"
