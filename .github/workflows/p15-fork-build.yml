@@ -173,6 +173,12 @@ jobs:
                   raise SystemExit("redesign.test.cjs legacy assertion was not found: " + old[:90])
               s = s.replace(old, new, 1)
 
+          boundary_old = "assert.equal(catalog.neighbour('foundation-references',1),'foundation-books');assert.equal(catalog.neighbour('ministry-10',1),null);"
+          boundary_new = "assert.equal(catalog.neighbour('foundation-references',1),'foundation-books');assert.equal(catalog.neighbour('ministry-10',1),'pron-10-integrated-ministry');assert.equal(catalog.neighbour('pron-10-integrated-ministry',1),null);"
+          if boundary_old not in s:
+              raise SystemExit("redesign.test.cjs ministry boundary assertion was not found.")
+          s = s.replace(boundary_old, boundary_new, 1)
+
           p.write_text(s, encoding="utf-8")
 
           p = Path("tests/browser.cjs")
@@ -188,7 +194,16 @@ jobs:
               "console.log(`PASS: ${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.`);"
           )
           p.write_text(s, encoding="utf-8")
-          print("Migrated catalog/browser assumptions.")
+
+          p = Path("tests/classroom-browser.cjs")
+          s = p.read_text(encoding="utf-8")
+          old = " assert.match(await page.locator('.course-kicker').innerText(),/Lesson 1 of 12/);"
+          new = " const foundationCount=await page.evaluate(()=>studyCatalog.forLesson('foundation-references').lessons.length);assert.match(await page.locator('.course-kicker').innerText(),new RegExp(`Lesson 1 of ${foundationCount}`));"
+          if old not in s:
+              raise SystemExit("classroom-browser.cjs legacy foundation-count assertion was not found.")
+          p.write_text(s.replace(old, new, 1), encoding="utf-8")
+
+          print("Migrated catalog/browser/classroom assumptions.")
 
       - name: Verify migration baseline
         run: node --test tests/redesign.test.cjs
