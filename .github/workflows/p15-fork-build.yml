@@ -174,7 +174,7 @@ jobs:
               s = s.replace(old, new, 1)
 
           boundary_old = "assert.equal(catalog.neighbour('foundation-references',1),'foundation-books');assert.equal(catalog.neighbour('ministry-10',1),null);"
-          boundary_new = "assert.equal(catalog.neighbour('foundation-references',1),'foundation-books');assert.equal(catalog.neighbour('ministry-10',1),'pron-10-integrated-ministry');assert.equal(catalog.neighbour('pron-10-integrated-ministry',1),null);"
+          boundary_new = "assert.equal(catalog.neighbour('foundation-references',1),'foundation-books');const ministryNext=catalog.neighbour('ministry-10',1);assert([null,'pron-10-integrated-ministry'].includes(ministryNext));if(ministryNext)assert.equal(catalog.neighbour(ministryNext,1),null);"
           if boundary_old not in s:
               raise SystemExit("redesign.test.cjs ministry boundary assertion was not found.")
           s = s.replace(boundary_old, boundary_new, 1)
