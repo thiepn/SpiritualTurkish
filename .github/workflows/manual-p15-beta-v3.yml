@@ -99,3 +99,4 @@ jobs:
     - name: Summary
       shell: bash
       run: "{\n  echo \"## SpiritualTurkish P15 v3\"\n  echo\n  echo \"**Branch:** `${{ steps.branch.outputs.name }}`\"\n  echo\n  echo \"**Automated tests:** `$(node -e \"console.log(require('./release-evidence/automated-tests.json').status)\")`\"\n  echo\n  echo \"**P15 certification:** `$(cat release-certification/decision.txt | tr -d '\\r\\n')`\"\n} >> \"$GITHUB_STEP_SUMMARY\""
+# trigger-after-actions-enabled
