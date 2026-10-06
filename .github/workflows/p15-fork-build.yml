@@ -129,6 +129,54 @@ jobs:
           for filename in [f"P{i}-apply.py" for i in range(6, 15)]:
               patch_one(filename)
 
+          # P4 changed the legacy pronunciation helper's learner-facing Korean copy.
+          # Keep the existing bilingual shell contract in sync so English mode never
+          # exposes untranslated or mixed Korean/English strings.
+          p4 = root / "SpiritualTurkish-P4-apply.py"
+          if not p4.exists():
+              p4 = root / "P4-apply.py"
+          p4s = p4.read_text(encoding="utf-8")
+          if "import argparse, shutil, subprocess, sys" not in p4s:
+              raise SystemExit("P4 import anchor was not found.")
+          p4s = p4s.replace(
+              "import argparse, shutil, subprocess, sys",
+              "import argparse, shutil, subprocess, sys, json",
+              1
+          )
+
+          p4_anchor = '    node=shutil.which("node")'
+          if p4_anchor not in p4s:
+              raise SystemExit("P4 translation insertion anchor was not found.")
+
+          p4_translation_block = r'''    shell_path=root/"shell-translations.js"
+    if shell_path.exists():
+        shell_text=shell_path.read_text(encoding="utf-8")
+        p4_marker="/* SpiritualTurkish P4 bilingual pronunciation copy */"
+        p4_translations={
+          "터키어 음성 인식 확인":["Turkish speech-recognition check","터키어 음성 인식 확인"],
+          "마이크를 누르고 단어를 말하면 브라우저 음성 인식기가 어떤 문자로 들었는지 보여 줍니다. 이것은 발음 정확도·강세·억양 점수가 아닙니다.":["Speak a word into the microphone. The browser shows what text its speech recogniser heard. This is not a score for pronunciation, stress or intonation.","마이크를 누르고 단어를 말하면 브라우저 음성 인식기가 어떤 문자로 들었는지 보여 줍니다. 이것은 발음 정확도·강세·억양 점수가 아닙니다."],
+          "음성 인식 결과:":["Speech-recognition result:","음성 인식 결과:"],
+          "인식 대기":["Waiting for recognition","인식 대기"],
+          "음성 인식기가 어떤 텍스트로 들었는지 확인합니다. 발음 점수가 아닙니다.":["This shows what text the speech recogniser heard. It is not a pronunciation score.","음성 인식기가 어떤 텍스트로 들었는지 확인합니다. 발음 점수가 아닙니다."],
+          "문자 일치":["Text match","문자 일치"],
+          "부분 일치":["Partial text match","부분 일치"],
+          "다시 확인":["Check again","다시 확인"],
+          "인식 결과가 목표 단어와 일치합니다.":["The recognised text matches the target word.","인식 결과가 목표 단어와 일치합니다."],
+          "이것은 발음·강세·억양 평가가 아닙니다. 자신의 녹음과 원어민 모델을 직접 비교하세요.":["This does not assess pronunciation, stress or intonation. Compare your own recording directly with the native-speaker model.","이것은 발음·강세·억양 평가가 아닙니다. 자신의 녹음과 원어민 모델을 직접 비교하세요."],
+          "인식된 문자가 일부 일치합니다.":["Some of the recognised text matches.","인식된 문자가 일부 일치합니다."],
+          "음성 인식은 발음 정확도를 평가하지 않습니다. 다시 듣고 직접 비교하세요.":["Speech recognition does not assess pronunciation accuracy. Listen again and compare directly.","음성 인식은 발음 정확도를 평가하지 않습니다. 다시 듣고 직접 비교하세요."],
+          "인식기가 다른 문자로 들었습니다.":["The speech recogniser heard different text.","인식기가 다른 문자로 들었습니다."],
+          "이것만으로 발음이 틀렸다고 판단하지 마세요. 모델을 듣고 자신의 녹음을 비교한 뒤 다시 시도하세요.":["Do not conclude from this alone that your pronunciation is wrong. Listen to the model, compare it with your recording, and try again.","이것만으로 발음이 틀렸다고 판단하지 마세요. 모델을 듣고 자신의 녹음을 비교한 뒤 다시 시도하세요."]
+        }
+        if p4_marker not in shell_text:
+            shell_text += "\n"+p4_marker+"\nObject.assign(window.SHELL_TRANSLATIONS, "+json.dumps(p4_translations,ensure_ascii=False)+");\n"
+            shell_path.write_text(shell_text,encoding="utf-8")
+
+'''
+          p4s = p4s.replace(p4_anchor, p4_translation_block + p4_anchor, 1)
+          p4.write_text(p4s,encoding="utf-8")
+          print("Patched P4 bilingual pronunciation helper copy.")
+
           p = root / "tests/release-evidence.test.cjs"
           s = p.read_text(encoding="utf-8")
           old = """  for(const n of ['source-fidelity.json','copyright.json','browser-qualification.json','accessibility.json'])
