@@ -1,6 +1,9 @@
 name: Apply SpiritualTurkish P15 beta candidate v3
 'on':
   workflow_dispatch: null
+  push:
+    branches:
+    - release/p15-beta-final
 permissions:
   contents: write
   pull-requests: write
@@ -12,7 +15,7 @@ jobs:
     - name: Check out current main
       uses: actions/checkout@v4
       with:
-        ref: main
+        ref: ${{ github.ref_name }}
         fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -38,7 +41,7 @@ jobs:
         \ for i in range(6,15)]:\n    patch_one(filename)"
     - name: Migrate pre-P6 regression assumptions
       shell: python
-      run: "from pathlib import Path\n\np = Path(\"tests/redesign.test.cjs\")\ns = p.read_text(encoding=\"utf-8\")\n\nrepls = [\n(\n\"test('declared chapters contain all 77 lessons exactly once and preserve curriculum order',()=>{\",\n\"test('declared chapters contain every base lesson exactly once and preserve curriculum order while allowing integrated extension lessons',()=>{\"\n),\n(\n\" assert.equal(catalog.courses.length,6);assert.equal(ordered.length,77);assert.equal(new Set(ordered).size,77);\",\n\" assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),`unexpected pronunciation lesson count: ${pron.length}`);\"\n),\n(\n\" assert.deepEqual([...ordered].sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());\",\n\" assert.deepEqual(ordered.filter(id=>!id.startsWith('pron-')).sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());\"\n),\n(\n\" for(const course of catalog.courses){assert.deepEqual(Array.from(course.lessons),Array.from(c.ALL_LESSONS.filter(l=>l.track===course.id),l=>l.id));for(const\
+      run: "from pathlib import Path\n\np = Path(\"tests/redesign.test.cjs\")\ns = p.read_text(encoding=\"utf-8\")\n\nrepls = [\n(\n\"test('declared chapters contain all 77 lessons exactly once and preserve curriculum order',()=>{\",\n\"test('declared chapters contain every base lesson exactly once and preserve curriculum order while allowing integrated extension lessons',()=>{\"\n),\n(\n\" assert.equal(catalog.courses.length,6);assert.equal(ordered.length,77);assert.equal(new Set(ordered).size,77);\",\n\" assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),`unexpected pronunciation lesson count: ${pron.length}`);\"\n),\n(\n\" assert.deepEqual([...ordered].sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());\",\n\" assert.deepEqual([...ordered.filter(id=>!id.startsWith('pron-'))].sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());\"\n),\n(\n\" for(const course of catalog.courses){assert.deepEqual(Array.from(course.lessons),Array.from(c.ALL_LESSONS.filter(l=>l.track===course.id),l=>l.id));for(const\
         \ id of course.lessons){assert(catalog.chapterFor(id));assert.equal(catalog.forLesson(id).id,course.id);}}\",\n\" for(const course of catalog.courses){assert.deepEqual(Array.from(course.lessons).filter(id=>!id.startsWith('pron-')),Array.from(c.ALL_LESSONS.filter(l=>l.track===course.id),l=>l.id));for(const id of course.lessons){assert(catalog.chapterFor(id));assert.equal(catalog.forLesson(id).id,course.id);}}\"\n)\n]\n\nfor old, new in repls:\n    if old not in s:\n        raise SystemExit(\"redesign.test.cjs expected legacy assertion was not found: \" + old[:80])\n    s = s.replace(old, new, 1)\n\np.write_text(s, encoding=\"utf-8\")\n\np = Path(\"tests/browser.cjs\")\ns = p.read_text(encoding=\"utf-8\")\n\nold = \"const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,77);\"\nnew = \"const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,87);\"\nif old not in s:\n    raise SystemExit(\"browser.cjs legacy 77-lesson assertion\
         \ was not found.\")\ns = s.replace(old, new, 1)\ns = s.replace(\"console.log(`All 77 lessons rendered in ${l}.`);\", \"console.log(`All ${ids.length} lessons rendered in ${l}.`);\")\ns = s.replace(\n    \"console.log('PASS: 77 lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.');\",\n    \"console.log(`PASS: ${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.`);\"\n)\np.write_text(s, encoding=\"utf-8\")\n\nprint(\"Migrated catalog/browser regression assumptions.\")"
     - name: Verify base regression test
