@@ -201,9 +201,16 @@ jobs:
           new = " const foundationCount=await page.evaluate(()=>studyCatalog.forLesson('foundation-references').lessons.length);assert.match(await page.locator('.course-kicker').innerText(),new RegExp(`Lesson 1 of ${foundationCount}`));"
           if old not in s:
               raise SystemExit("classroom-browser.cjs legacy foundation-count assertion was not found.")
-          p.write_text(s.replace(old, new, 1), encoding="utf-8")
+          s = s.replace(old, new, 1)
 
-          print("Migrated catalog/browser/classroom assumptions.")
+          startup_old = " await page.goto('http://localhost:3000');await page.evaluate(()=>localStorage.clear());await page.reload();"
+          startup_new = " await page.goto('http://localhost:3000',{waitUntil:'networkidle'});await page.waitForSelector('#study-language');await page.evaluate(async()=>{localStorage.clear();if('serviceWorker' in navigator){for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();}if('caches' in window){for(const k of await caches.keys())await caches.delete(k);}});await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#study-language');"
+          if startup_old not in s:
+              raise SystemExit("classroom-browser.cjs startup sequence was not found.")
+          s = s.replace(startup_old, startup_new, 1)
+          p.write_text(s, encoding="utf-8")
+
+          print("Migrated catalog/browser/classroom assumptions and PWA-safe browser startup.")
 
       - name: Verify migration baseline
         run: node --test tests/redesign.test.cjs
