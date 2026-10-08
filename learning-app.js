@@ -227,10 +227,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   const inspector=document.getElementById('word-inspector');inspector.addEventListener('close',()=>{window.audioEngine.stopSpeaking();if(wordReturn?.isConnected)wordReturn.focus();});
   for(const dialog of [inspector,document.getElementById('outline-dialog')])dialog.addEventListener('keydown',e=>{
-    if(e.key!=='Tab')return;
+    if(e.key!=='Tab'||!dialog.open)return;
     const items=[...dialog.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex="0"]')].filter(el=>!el.disabled&&el.getClientRects().length);
-    const first=items[0],last=items.at(-1);if(!first)return;
-    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    if(!items.length)return;
+    const current=items.indexOf(document.activeElement);
+    const next=e.shiftKey?(current<=0?items.length-1:current-1):(current<0||current===items.length-1?0:current+1);
+    e.preventDefault();items[next].focus();
   });
   function bindSpeech(root){root.querySelectorAll('[data-speech]').forEach(b=>b.onclick=()=>audioEngine.speakTurkish(b.dataset.speech,null,()=>{(root.querySelector('#word-audio-status')||audioStatus).textContent=t('Playing synthetic Turkish…','터키어 합성 음성 재생 중…');},()=>{(root.querySelector('#word-audio-status')||audioStatus).textContent=t('Speech ended.','음성이 끝났습니다.');}));root.querySelectorAll('[data-speech-stop]').forEach(b=>b.onclick=()=>{audioEngine.stopSpeaking();(root.querySelector('#word-audio-status')||audioStatus).textContent=t('Stopped.','정지했습니다.');});}
   function bindView(view){
