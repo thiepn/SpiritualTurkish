@@ -175,7 +175,7 @@ def patch_repo_tests():
     )
     s = s.replace(
         "await page.locator('#course-independent').check();await page.locator('#course-complete').click();assert.equal(await page.evaluate(()=>course.entry('ministry-01').completed),true);",
-        "await page.locator('#course-independent').check();const oralComplete=page.locator('[data-p7-complete]');if(await oralComplete.count())await oralComplete.check();await page.locator('#course-complete').click();assert.equal(await page.evaluate(()=>course.entry('ministry-01').completed),true);"
+        "await page.locator('#course-independent').check();const oralComplete=page.locator('[data-p7-complete]');if(await oralComplete.count())await oralComplete.check();for(let guard=0;guard<10&&await page.locator('[data-rehearsal-spoken]').count();guard++){await page.locator('[data-rehearsal-spoken]').check();await page.locator('input[name=\\\"ministry-01-rehearsal-move\\\"][value=\\\"clarify\\\"]').check();await page.locator('[data-rehearsal-submit]').click();await page.locator('[data-rehearsal-next]').click();}assert((await page.evaluate(()=>course.entry('ministry-01').rehearsal?.completedRuns||0))>=1);await page.locator('#course-complete').click();assert.equal(await page.evaluate(()=>course.entry('ministry-01').completed),true);"
     )
     s = s.replace("console.log(`All 77 lessons rendered in ${l}.`);",
                   "console.log(`All ${ids.length} lessons rendered in ${l}.`);")
