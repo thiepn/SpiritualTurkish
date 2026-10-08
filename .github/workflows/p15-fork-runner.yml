@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - name: Check out release branch
@@ -34,7 +34,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Apply cumulative P2-P15
         run: python scripts/apply-p15-fork.py
