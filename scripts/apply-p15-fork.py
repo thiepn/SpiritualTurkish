@@ -96,7 +96,7 @@ def patch_repo_tests():
         ),
         (
             " assert.equal(catalog.courses.length,6);assert.equal(ordered.length,77);assert.equal(new Set(ordered).size,77);",
-            " assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),\`unexpected pronunciation lesson count: \${pron.length}\`);"
+            " assert.equal(catalog.courses.length,6);assert.equal(new Set(ordered).size,ordered.length);const pron=ordered.filter(id=>id.startsWith('pron-'));assert([0,10].includes(pron.length),`unexpected pronunciation lesson count: ${pron.length}`);"
         ),
         (
             " assert.deepEqual([...ordered].sort(),Array.from(c.ALL_LESSONS,l=>l.id).sort());",
@@ -118,11 +118,11 @@ def patch_repo_tests():
         "const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,77);",
         "const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,87);"
     )
-    s = s.replace("console.log(\`All 77 lessons rendered in \${l}.\`);",
-                  "console.log(\`All \${ids.length} lessons rendered in \${l}.\`);")
+    s = s.replace("console.log(`All 77 lessons rendered in ${l}.`);",
+                  "console.log(`All ${ids.length} lessons rendered in ${l}.`);")
     s = s.replace(
         "console.log('PASS: 77 lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.');",
-        "console.log(\`PASS: \${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.\`);"
+        "console.log(`PASS: ${ids.length} lessons, 82 reading routes, 24 workshops, EN/KO, four widths, completion, backups, migration, review, prayer drafts, keyboard, TTS and fallback.`);"
     )
     p.write_text(s,encoding="utf-8")
     print("Repo regression migrations checked.")
