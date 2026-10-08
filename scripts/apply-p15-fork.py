@@ -169,6 +169,10 @@ def patch_repo_tests():
         "const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,77);",
         "const ids=await page.evaluate(()=>ALL_LESSONS.map(l=>l.id));assert.equal(ids.length,87);"
     )
+    s = s.replace(
+        "page.locator('#section-ch7 fieldset').count()",
+        "page.locator('#section-ch7 fieldset[id]').count()"
+    )
     s = s.replace("console.log(`All 77 lessons rendered in ${l}.`);",
                   "console.log(`All ${ids.length} lessons rendered in ${l}.`);")
     s = s.replace(
