@@ -187,6 +187,12 @@ def patch_repo_tests():
         "await lesson('ministry-03','practise');for(const type of ['clarify','accept','uncertain','refuse']){await page.selectOption('#ministry-03-branch-type',type);await page.locator('[data-branch-answer=\\\"0\\\"]').click();assert.match(await page.locator('#branch-feedback').innerText(),/Appropriate response/);}assert.equal(await page.evaluate(()=>!!course.entry('ministry-03').completed),false);",
         "await lesson('ministry-03','practise');assert.equal(await page.locator('[data-rehearsal-spoken]').count(),1);await page.locator('[data-rehearsal-spoken]').check();await page.locator('input[name=\\\"ministry-03-rehearsal-move\\\"][value=\\\"clarify\\\"]').check();await page.locator('[data-rehearsal-submit]').click();assert.equal(await page.locator('[data-rehearsal-models] details').count(),1);await page.locator('[data-rehearsal-next]').click();assert.equal(await page.evaluate(()=>!!course.entry('ministry-03').completed),false);"
     )
+    branch_old = """await lesson('ministry-03','practise');for(const type of ['clarify','accept','uncertain','refuse']){await page.selectOption('#ministry-03-branch-type',type);await page.locator('[data-branch-answer="0"]').click();assert.match(await page.locator('#branch-feedback').innerText(),/Appropriate response/);}assert.equal(await page.evaluate(()=>!!course.entry('ministry-03').completed),false);"""
+    branch_new = """await lesson('ministry-03','practise');assert.equal(await page.locator('[data-rehearsal-spoken]').count(),1);await page.locator('[data-rehearsal-spoken]').check();await page.locator('input[name="ministry-03-rehearsal-move"][value="clarify"]').check();await page.locator('[data-rehearsal-submit]').click();assert.equal(await page.locator('[data-rehearsal-models] details').count(),1);await page.locator('[data-rehearsal-next]').click();assert.equal(await page.evaluate(()=>!!course.entry('ministry-03').completed),false);"""
+    if branch_old in s:
+        s = s.replace(branch_old, branch_new, 1)
+    if "#ministry-03-branch-type" in s:
+        fail("browser.cjs legacy ministry-03 branch simulator remained after P8 migration.")
     p.write_text(s,encoding="utf-8")
 
     p = ROOT / "tests/classroom-browser.cjs"
