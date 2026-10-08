@@ -173,6 +173,10 @@ def patch_repo_tests():
         "page.locator('#section-ch7 fieldset').count()",
         "page.locator('#section-ch7 fieldset[id]').count()"
     )
+    s = s.replace(
+        "await page.locator('#course-independent').check();await page.locator('#course-complete').click();assert.equal(await page.evaluate(()=>course.entry('ministry-01').completed),true);",
+        "await page.locator('#course-independent').check();const oralComplete=page.locator('[data-p7-complete]');if(await oralComplete.count())await oralComplete.check();await page.locator('#course-complete').click();assert.equal(await page.evaluate(()=>course.entry('ministry-01').completed),true);"
+    )
     s = s.replace("console.log(`All 77 lessons rendered in ${l}.`);",
                   "console.log(`All ${ids.length} lessons rendered in ${l}.`);")
     s = s.replace(
