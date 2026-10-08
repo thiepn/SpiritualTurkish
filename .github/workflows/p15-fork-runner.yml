@@ -1,0 +1,77 @@
+name: P15 fork candidate build
+
+on:
+  push:
+    branches:
+      - release/p15-beta-final
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release/p15-beta-final
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Apply cumulative P2-P15
+        run: python scripts/apply-p15-fork.py
+
+      - name: Require final automated evidence
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const unit = JSON.parse(fs.readFileSync('release-evidence/automated-tests.json','utf8'));
+          const browser = JSON.parse(fs.readFileSync('release-evidence/browser-qualification.json','utf8'));
+          console.log('Unit/data:', unit.status);
+          console.log('Browser:', browser.automated?.status);
+          console.log('Certification:', fs.readFileSync('release-certification/decision.txt','utf8').trim());
+          if (unit.status !== 'pass') {
+            console.error(unit.stdout || '');
+            console.error(unit.stderr || '');
+            process.exitCode = 1;
+          }
+          if (browser.automated?.status !== 'pass') {
+            console.error(browser.automated?.reason || '');
+            console.error(browser.automated?.stdout || '');
+            console.error(browser.automated?.stderr || '');
+            process.exitCode = 1;
+          }
+          NODE
+
+      - name: Commit finished beta candidate
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/manual-p15-beta.yml || true
+          git rm -f .github/workflows/p15-fork-runner.yml || true
+          git rm -f scripts/apply-p15-fork.py || true
+          rm -f field-test/results/*.json field-test/results/*.csv 2>/dev/null || true
+          git add -A
+          git status --short
+          git commit -m "feat: apply SpiritualTurkish P2-P15 beta candidate [skip ci]"
+          git push origin HEAD:release/p15-beta-final
